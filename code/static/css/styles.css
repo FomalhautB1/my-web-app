@@ -2,6 +2,7 @@ body {
     font-family: Arial, sans-serif;
     text-align: center;
     padding: 20px;
+    background-color: #edd3ff; /* Светло-серый фон в формате HEX */
 }
 
 h1 {
@@ -17,5 +18,10 @@ button {
 
 button:hover {
     background-color: #ddd;
+}
+
+.video-frame {
+    border: 10px double rgb(92, 0, 95);  /* Рамка толщиной 5px красного цвета */
+    border-radius: 10px;    /* Скругленные углы */
 }
 

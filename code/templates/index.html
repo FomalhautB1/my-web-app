@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relay Control and Video Stream</title>
     <link rel="stylesheet" href="static/css/styles.css">
-    <!-- Подключаем Vue.js -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
 </head>
 <body>
@@ -13,39 +12,46 @@
         <h1>Relay Control and Video Stream</h1>
         
         <div>
-            <!-- Кнопки для управления реле -->
             <button @click="toggleRelay('on')">Turn Relay On</button>
             <button @click="toggleRelay('off')">Turn Relay Off</button>
+            <button @click="switchStream" v-text="streamStatusText"></button>
         </div>
 
         <h2>Video Stream</h2>
-        <!-- Компонент для отображения видеопотока -->
-        <img :src="videoStreamUrl" width="640" height="480" alt="Video Stream">
+        <img v-if="!streamIsOff" :src="videoStreamUrl" width="640" height="480" alt="Video Stream" class="video-frame">
+        <p v-else>The video stream is currently off.</p>
     </div>
 
     <script>
         const app = Vue.createApp({
             data() {
                 return {
-                    videoStreamUrl: '/video',  // URL для видеопотока
+                    videoStreamUrl: '/video',
+                    streamIsOff: true,
                 };
+            },
+            computed: {
+                streamStatusText() {
+                    return this.streamIsOff ? 'Turn Stream On' : 'Turn Stream Off';
+                }
             },
             methods: {
                 toggleRelay(action) {
-                    fetch(`/relay/${action}`, {
-                        method: 'GET',
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(`Relay is ${data.status}`);
-                    })
-                    .catch(err => {
-                        alert('Error: ' + err);
-                    });
+                    fetch(`/relay/${action}`)
+                        .then(response => response.json())
+                        .then(data => alert(`Relay is ${data.status}`))
+                        .catch(err => alert('Error: ' + err));
+                },
+                switchStream() {
+                    fetch(`/stream/on_off`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.streamIsOff = data.status === 'off';
+                        })
+                        .catch(err => alert('Error: ' + err));
                 }
             }
         });
-        
         app.mount('#app');
     </script>
 </body>
