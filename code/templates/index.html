@@ -14,7 +14,7 @@
         <div>
             <button @click="toggleRelay('on')">Turn Relay On</button>
             <button @click="toggleRelay('off')">Turn Relay Off</button>
-            <button @click="switchStream" v-text="streamStatusText"></button>
+            <button @click="switchStream()" v-text="streamStatusText"></button>
         </div>
 
         <h2>Video Stream</h2>
@@ -43,15 +43,26 @@
                         .catch(err => alert('Error: ' + err));
                 },
                 switchStream() {
-                    fetch(`/stream/on_off`)
+                    fetch(`/stream/status`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const action = data.status === 'off' ? 'on' : 'off';
+                            return fetch(`/stream/${action}`);
+                        })
                         .then(response => response.json())
                         .then(data => {
                             this.streamIsOff = data.status === 'off';
+                            if (this.streamIsOff) {
+                                this.videoStreamUrl = null; // Убираем URL при выключении
+                            } else {
+                                this.videoStreamUrl = `/video?timestamp=${new Date().getTime()}`; // Новый поток
+                            }
                         })
                         .catch(err => alert('Error: ' + err));
                 }
-            }
-        });
+            }      
+    });
+
         app.mount('#app');
     </script>
 </body>
