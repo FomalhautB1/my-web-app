@@ -18,6 +18,7 @@ app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Для простоты
 jwt = JWTManager(app)
 bcrypt = Bcrypt()
 
+relays = {}
 # Пользовательские данные
 users = {
     'user': bcrypt.generate_password_hash('password123').decode('utf-8')
@@ -32,6 +33,9 @@ RELAY_IP = "http://192.168.1.100/cm?user=admin&password=admin"
 @app.before_request
 def redirect_to_login():
     """Перенаправляет пользователя на страницу логина, если токен отсутствует."""
+    if request.endpoint is None:  # Проверяем, что endpoint существует
+        return  # Разрешаем обработку без перенаправления
+
     if request.endpoint not in ['login', 'static'] and not request.endpoint.startswith('static'):
         try:
             verify_jwt_in_request()
@@ -72,6 +76,31 @@ def logout():
     response = make_response(redirect(url_for('login')))
     response.delete_cookie('access_token')
     return response
+
+
+
+@app.route('/relay/add', methods=['POST'])
+@jwt_required()
+def add_relay():
+    """Adds a new relay."""
+    global relays
+    relay_id = len(relays) + 1
+    try:
+        data = request.get_json()  # Get JSON data from the request
+        if not data:
+            return jsonify({"error": "Invalid JSON or empty request"}), 400
+
+        ip = data.get('ip')
+        name = data.get('name', f'Relay {relay_id}')
+
+        if not ip:
+            return jsonify({"error": "IP address is required"}), 400
+
+        relays[relay_id] = {"ip": ip, "name": name}
+        return jsonify({"message": "Relay added", "id": relay_id}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 @app.route('/protected')
 @jwt_required()

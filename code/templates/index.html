@@ -20,6 +20,26 @@
         <h2>Video Stream</h2>
         <img v-if="!streamIsOff" :src="videoStreamUrl" width="640" height="480" alt="Video Stream" class="video-frame">
         <p v-else>The video stream is currently off.</p>
+
+        <!-- Добавление формы -->
+        <div>
+            <h2>Добавить реле</h2>
+            <h1>Введите IP-адрес</h1>
+            <form @submit.prevent="submitIp">
+                <input
+                    type="text"
+                    v-model="ipAddress"
+                    placeholder="Введите IP-адрес"
+                    required
+                    pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+                    title="Введите корректный IP-адрес (от 0.0.0.0 до 255.255.255.255)"
+                />
+                <button type="submit">Отправить</button>
+            </form>
+          
+            <div v-if="error" style="color: red; margin-top: 10px;">{{ error }}</div>
+            <div v-if="submittedIp" style="margin-top: 10px;">Вы ввели IP: {{ submittedIp }}</div>
+        </div>
     </div>
 
     <script>
@@ -28,6 +48,9 @@
                 return {
                     videoStreamUrl: '/video',
                     streamIsOff: true,
+                    ipAddress: '', // Для ввода IP-адреса
+                    submittedIp: '', // Для отображения введенного IP
+                    error: null, // Для отображения ошибок
                 };
             },
             computed: {
@@ -59,11 +82,49 @@
                             }
                         })
                         .catch(err => alert('Error: ' + err));
-                }
-            }      
-    });
-
-        app.mount('#app');
+                },
+                submitIp() {
+                    const regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+                    
+                    if (!regex.test(this.ipAddress)) {
+                        this.error = "Введите корректный IP-адрес (от 0.0.0.0 до 255.255.255.255)";
+                        this.submittedIp = null;
+                        return;
+                    }
+    
+                    // Отправка POST-запроса на сервер
+                    fetch('/relay/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Если нужно, можно добавить заголовок авторизации для JWT, например:
+                            // 'Authorization': `Bearer ${jwtToken}`
+                        },
+                        body: JSON.stringify({
+                            ip: this.ipAddress,
+                            name: this.nameInput || `Реле ${Date.now()}` // Имя реле, если пустое — даем дефолтное
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            this.error = data.error;
+                            this.submittedIp = null;
+                        } else {
+                            this.error = null;
+                            this.submittedIp = this.ipAddress;  // Устанавливаем введенный IP
+                            alert(`Реле добавлено с ID: ${data.id}`);
+                        }
+                    })
+                    .catch(err => {
+                        this.error = "Ошибка при добавлении реле";
+                        console.error(err);
+                    });
+                },
+            },
+        });
+    
+        app.mount("#app");
     </script>
 </body>
 </html>
