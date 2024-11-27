@@ -24,9 +24,11 @@ users = {
     'user': bcrypt.generate_password_hash('password123').decode('utf-8')
 }
 
+ip = ''
+name = ''
 # Переменная состояния
 stream_is_off = True
-RELAY_IP = "http://192.168.1.100/cm?user=admin&password=admin"
+RELAY_IP = ip
 
 # === Авторизация и маршруты === #
 
@@ -82,21 +84,21 @@ def logout():
 @app.route('/relay/add', methods=['POST'])
 @jwt_required()
 def add_relay():
-    """Adds a new relay."""
-    global relays
+    """Добавляет новое реле."""
+    global relays, RELAY_IP
     relay_id = len(relays) + 1
     try:
-        data = request.get_json()  # Get JSON data from the request
+        data = request.get_json()  # Получение данных из JSON-запроса
         if not data:
             return jsonify({"error": "Invalid JSON or empty request"}), 400
 
-        ip = data.get('ip')
+        RELAY_IP = data.get('ip')  # Присваиваем глобальной переменной
         name = data.get('name', f'Relay {relay_id}')
 
-        if not ip:
+        if not RELAY_IP:
             return jsonify({"error": "IP address is required"}), 400
 
-        relays[relay_id] = {"ip": ip, "name": name}
+        relays[relay_id] = {"ip": RELAY_IP, "name": name}
         return jsonify({"message": "Relay added", "id": relay_id}), 200
 
     except Exception as e:
@@ -116,20 +118,34 @@ def protected():
 def relay_on():
     """Включает реле."""
     try:
-        response = requests.get(f"{RELAY_IP}&power=on")
-        return jsonify({"status": "on" if response.status_code == 200 else "error"}), response.status_code
+        response = requests.get(f"http://{RELAY_IP}/cm?cmnd=Power1 ON", timeout=5)
+        if response.status_code == 200:
+            return jsonify({"status": "on"}), 200
+        return jsonify({"error": f"Unexpected response from relay: {response.status_code}"}), response.status_code
+    except requests.Timeout:
+        return jsonify({"error": "Timeout occurred while connecting to relay"}), 504
     except requests.RequestException as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+
+
 
 @app.route('/relay/off', methods=['GET'])
 @jwt_required()
 def relay_off():
     """Выключает реле."""
     try:
-        response = requests.get(f"{RELAY_IP}&power=off")
-        return jsonify({"status": "off" if response.status_code == 200 else "error"}), response.status_code
+        response = requests.get(f"http://{RELAY_IP}/cm?cmnd=Power1 OFF", timeout=5)
+        if response.status_code == 200:
+            return jsonify({"status": "off"}), 200
+        return jsonify({"error": f"Unexpected response from relay: {response.status_code}"}), response.status_code
+    except requests.Timeout:
+        return jsonify({"error": "Timeout occurred while connecting to relay"}), 504
     except requests.RequestException as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+
+
 
 @app.route('/stream/on', methods=['GET'])
 @jwt_required()
