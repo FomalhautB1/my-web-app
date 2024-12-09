@@ -1,0 +1,39 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column; /* Выстраиваем элементы вертикально */
+    justify-content: center; /* Центрируем по вертикали */
+    align-items: center; /* Центрируем по горизонтали */
+    padding: 20px;
+    background-color: #edd3ff;
+    font-family: Arial, sans-serif;
+}
+
+h2 {
+    margin-bottom: 20px; /* Расстояние между заголовком и формой */
+    color: #333;
+}
+
+form {
+    display: flex; /* Flexbox внутри формы */
+    flex-direction: column; /* Расположить элементы вертикально */
+    align-items: center; /* Центрировать поля формы */
+    gap: 15px; /* Пространство между элементами формы */
+}
+
+button {
+    padding: 10px 20px;
+    margin: 0px 0;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: rgb(91, 0, 109);
+    color: rgb(248, 248, 248);
+    font-weight: bold;       /* Сделать текст жирным */
+    text-transform: uppercase; /* Сделать все буквы заглавными */
+}
+
+button:hover {
+    background-color: #b531f1;
+}
+

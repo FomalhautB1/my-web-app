@@ -1,27 +1,92 @@
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 20px;
-    background-color: #edd3ff; /* Светло-серый фон в формате HEX */
+    background-color: #edd3ff;
+    font-family: Arial, sans-serif;
 }
 
 h1 {
     color: #333;
+    text-align: center; /* Центрируем заголовок */
 }
 
 button {
     padding: 10px 20px;
-    margin: 10px;
+    margin: 0px 0;
     font-size: 16px;
     cursor: pointer;
+    background-color: rgb(91, 0, 109);
+    color: rgb(248, 248, 248);
+    font-weight: bold;       /* Сделать текст жирным */
+    text-transform: uppercase; /* Сделать все буквы заглавными */
 }
 
 button:hover {
-    background-color: #ddd;
+    background-color: #b531f1;
 }
 
 .video-frame {
-    border: 10px double rgb(92, 0, 95);  /* Рамка толщиной 5px красного цвета */
-    border-radius: 10px;    /* Скругленные углы */
+
+    border: 20px rgb(92, 0, 95);
+    border-radius: 10px;
+
 }
 
+.main-container {
+    display: flex;
+    justify-content: flex-start; /* Выравниваем контейнер по левому краю */
+    align-items: flex-start; /* Выровняем верхние границы кнопок и видео */
+    gap: 20px; /* Расстояние между кнопками и видео */
+}
+
+.button-container {
+    z-index: 1000;
+    position: absolute;
+    top: 50px;
+    left: 400px;
+    width: 250px;
+    height: 100%;
+    margin-left: -250px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+
+}
+
+.add-relay-container {
+    z-index: 1000;
+    position: absolute;
+    top: 50px;
+    right: 40px;
+    width: 250px;
+    height: 100%;
+    margin-right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.video-container {
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    align-items: center;
+    height: 480px; /* Высота контейнера */
+    width: 640px; /* Ширина контейнера */
+    border: 5px solid purple; /* Рамка вокруг видео */
+    top: 40px; /* Отступ от верхнего края окна */
+    left: 50%; /* Центрируем контейнер по горизонтали */
+    transform: translateX(-50%); /* Для точного центрирования */
+    background-color: white; /* Фоновый цвет, если нужно */
+    border-radius: 20px;
+}
+
+.video-container h2 {
+    margin: 0; /* Убираем отступы заголовка */
+    text-align: center;
+}

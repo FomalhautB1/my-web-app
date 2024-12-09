@@ -9,22 +9,23 @@
 </head>
 <body>
     <div id="app">
-        <h1>Relay Control and Video Stream</h1>
-        
-        <div>
-            <button @click="toggleRelay('on')">Turn Relay On</button>
-            <button @click="toggleRelay('off')">Turn Relay Off</button>
-            <button @click="switchStream()" v-text="streamStatusText"></button>
+    <div class="main-container">  
+            <div class="button-container">
+                <button @click="toggleRelay('on')">Turn Relay On</button>
+                <button @click="toggleRelay('off')">Turn Relay Off</button>
+                <button @click="switchStream()" v-text="streamStatusText"></button>
+            </div>
+            
+        <div class="video-container">
+            <img v-if="!streamIsOff" :src="videoStreamUrl" width="640" height="480" alt="Video Stream" class="video-frame">
+            <p v-else>The video stream is currently off.</p>
         </div>
 
-        <h2>Video Stream</h2>
-        <img v-if="!streamIsOff" :src="videoStreamUrl" width="640" height="480" alt="Video Stream" class="video-frame">
-        <p v-else>The video stream is currently off.</p>
-
+        
         <!-- Добавление формы -->
-        <div>
-            <h2>Добавить реле</h2>
-            <h1>Введите IP-адрес</h1>
+        <div class="add-relay-container">
+            <h3>Добавить реле</h2>
+            <h4>Введите IP-адрес</h1>
             <form @submit.prevent="submitIp">
                 <input
                     type="text"
@@ -36,9 +37,10 @@
                 />
                 <button type="submit">Отправить</button>
             </form>
-          
+            
             <div v-if="error" style="color: red; margin-top: 10px;">{{ error }}</div>
             <div v-if="submittedIp" style="margin-top: 10px;">Вы ввели IP: {{ submittedIp }}</div>
+        </div>
         </div>
     </div>
 
