@@ -6,37 +6,33 @@ import requests
 import cv2
 from flask_bcrypt import Bcrypt
 
-# Создание приложения Flask
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'your_secret_key'
 app.config['JWT_TOKEN_LOCATION'] = ['cookies']
-app.config['JWT_COOKIE_SECURE'] = False  # Установить True, если используется HTTPS
+app.config['JWT_COOKIE_SECURE'] = False  
 app.config['JWT_ACCESS_COOKIE_PATH'] = '/'
-app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Для простоты
+app.config['JWT_COOKIE_CSRF_PROTECT'] = False  
 
-# Инициализация менеджера JWT и шифрования паролей
 jwt = JWTManager(app)
 bcrypt = Bcrypt()
 
 relays = {}
-# Пользовательские данные
 users = {
     'user': bcrypt.generate_password_hash('password123').decode('utf-8')
 }
 
 ip = ''
 name = ''
-# Переменная состояния
+
 stream_is_off = True
 RELAY_IP = ip
 
-# === Авторизация и маршруты === #
 
 @app.before_request
 def redirect_to_login():
-    """Перенаправляет пользователя на страницу логина, если токен отсутствует."""
-    if request.endpoint is None:  # Проверяем, что endpoint существует
-        return  # Разрешаем обработку без перенаправления
+
+    if request.endpoint is None:  
+        return  
 
     if request.endpoint not in ['login', 'static'] and not request.endpoint.startswith('static'):
         try:
@@ -47,17 +43,15 @@ def redirect_to_login():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Обрабатывает запросы логина."""
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
-        # Проверяем пользователя
         if username in users and bcrypt.check_password_hash(users[username], password):
             access_token = create_access_token(identity=username)
             response = make_response(redirect(url_for('protected')))
             response.set_cookie(
-                'access_token_cookie',  # Имя должно совпадать с ожидаемым
+                'access_token_cookie',  
                 access_token,
                 httponly=True,
                 secure=False,
@@ -74,7 +68,6 @@ def login():
 @app.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    """Обнуляет токен пользователя."""
     response = make_response(redirect(url_for('login')))
     response.delete_cookie('access_token')
     return response
@@ -84,15 +77,14 @@ def logout():
 @app.route('/relay/add', methods=['POST'])
 @jwt_required()
 def add_relay():
-    """Добавляет новое реле."""
     global relays, RELAY_IP
     relay_id = len(relays) + 1
     try:
-        data = request.get_json()  # Получение данных из JSON-запроса
+        data = request.get_json()  
         if not data:
             return jsonify({"error": "Invalid JSON or empty request"}), 400
 
-        RELAY_IP = data.get('ip')  # Присваиваем глобальной переменной
+        RELAY_IP = data.get('ip')  
         name = data.get('name', f'Relay {relay_id}')
 
         if not RELAY_IP:
@@ -107,16 +99,12 @@ def add_relay():
 @app.route('/protected')
 @jwt_required()
 def protected():
-    """Маршрут для проверки токена."""
     current_user = get_jwt_identity()
     return render_template('index.html', username=current_user)
-
-# === Реле и поток === #
 
 @app.route('/relay/on', methods=['GET'])
 @jwt_required()
 def relay_on():
-    """Включает реле."""
     try:
         response = requests.get(f"http://{RELAY_IP}/cm?cmnd=Power1 ON", timeout=5)
         if response.status_code == 200:
@@ -133,7 +121,6 @@ def relay_on():
 @app.route('/relay/off', methods=['GET'])
 @jwt_required()
 def relay_off():
-    """Выключает реле."""
     try:
         response = requests.get(f"http://{RELAY_IP}/cm?cmnd=Power1 OFF", timeout=5)
         if response.status_code == 200:
@@ -150,7 +137,6 @@ def relay_off():
 @app.route('/stream/on', methods=['GET'])
 @jwt_required()
 def stream_on():
-    """Включает поток."""
     global stream_is_off
     stream_is_off = False
     return jsonify({"status": "on"}), 200
@@ -158,7 +144,6 @@ def stream_on():
 @app.route('/stream/off', methods=['GET'])
 @jwt_required()
 def stream_off():
-    """Выключает поток."""
     global stream_is_off
     stream_is_off = True
     return jsonify({"status": "off"}), 200
@@ -166,20 +151,17 @@ def stream_off():
 @app.route('/stream/status', methods=['GET'])
 @jwt_required()
 def stream_status():
-    """Возвращает статус потока."""
     global stream_is_off
     return jsonify({"status": "off" if stream_is_off else "on"}), 200
 
 @app.route('/video')
 @jwt_required()
 def video():
-    """Возвращает видеопоток."""
     if stream_is_off:
         return jsonify({"error": "Stream is off"}), 404
     return Response(generate_video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def generate_video_stream():
-    """Генератор видеопотока."""
     global stream_is_off
     video_capture = cv2.VideoCapture(0)
     try:
@@ -195,7 +177,6 @@ def generate_video_stream():
 
 @app.route('/')
 def index():
-    """Перенаправляет на защищенный маршрут."""
     return redirect(url_for('protected'))
 
 # Запуск приложения
